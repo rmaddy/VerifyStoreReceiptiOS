@@ -3,10 +3,7 @@ Rick Maddy, Matthew Stevens, Ruotger Skupin, Apple, Dave Carlton, Fraser Hess, a
 
 These files are based off of the [roddi/ValidateStoreReceipt](https://github.com/roddi/ValidateStoreReceipt) project.
 
-At the end of October 2010 Apple announced the App Store for Mac. The App Store will put a receipt into your app bundle, but 
-won't implement any copy protection scheme. For details see [Validating App Store Receipts](https://developer.apple.com/devcenter/mac/documents/validating.html) (Developer membership needed).
-
-Once the iOS 7 NDA is lifted, a link to the iOS version can be added.
+For details on iOS receipt validation from Apple, see [Receipt Validation Programming Guide](https://developer.apple.com/library/ios/releasenotes/General/ValidateAppStoreReceipt/Introduction.html) (Developer membership needed).
 
 Unfortunately this document doesn't tell you how to process this receipt in detail, quote:
 
@@ -23,11 +20,15 @@ Missing from this project:
 
 ## Installation
 
-If you have an app that is more or less ready for the App Store, I think you will be able figure it out. Important is that you link with the dependencies listed in validatereceipt.m.
+If you have an app that is more or less ready for the App Store, I think you will be able figure it out. Important is that you link with the dependencies listed in VerifyStoreReceipt.m.
 
 ## Using It
 
 Be aware that there will be people trying to crack your app. So cover your tracks. I won't go into details but Blocks and Grand Central Dispatch seem to be good tools for that.
+
+## Sample Project
+
+The sample project shows one possible way to make use of this receipt verifier. Please note that the sample app requires that you use the (OpenSSL-for-iPhone](https://github.com/x2on/OpenSSL-for-iPhone) project. But both projects in a common parent directory. There are plenty of tasks that need to be completed to make the sample code complete but it is a framework to get you started. Like the notes in the VerifyStoreReceipt.m file, the code in the sample app should not be used as-is. If everyone uses the same code, it will be easy for hackers to work around the code making the receipt checking worthless.
 
 ## License
 
