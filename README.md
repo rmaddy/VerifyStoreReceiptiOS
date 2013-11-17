@@ -24,6 +24,8 @@ If you have an app that is more or less ready for the App Store, I think you wil
 
 ## Using It
 
+This class depends on OpenSSL being statically linked into your project. Please see https://github.com/x2on/OpenSSL-for-iPhone for one approach to getting that done.
+
 Be aware that there will be people trying to crack your app. So cover your tracks. I won't go into details but Blocks and Grand Central Dispatch seem to be good tools for that.
 
 ## Sample Project
