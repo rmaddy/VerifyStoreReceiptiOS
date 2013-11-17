@@ -34,7 +34,7 @@ const NSString * global_bundleIdentifier = @"com.example.SampleApp";
 }
 
 - (void)beginReceiptCheck {
-    if ([[NSBundle mainBundle] respondsToSelector:@selector(appStoreReceiptURL)]) {
+    if (floor(NSFoundationVersionNumber) > NSFoundationVersionNumber_iOS_6_1) {
         // See if there is an existing receipt or not
         NSString *appRecPath = [[[NSBundle mainBundle] appStoreReceiptURL] path];
         if ([[NSFileManager defaultManager] fileExistsAtPath:appRecPath]) {
