@@ -30,7 +30,7 @@ Be aware that there will be people trying to crack your app. So cover your track
 
 ## Sample Project
 
-The sample project shows one possible way to make use of this receipt verifier. Please note that the sample app requires that you use the [OpenSSL-for-iPhone](https://github.com/x2on/OpenSSL-for-iPhone) project. But both projects in a common parent directory. There are plenty of tasks that need to be completed to make the sample code complete but it is a framework to get you started. Like the notes in the VerifyStoreReceipt.m file, the code in the sample app should not be used as-is. If everyone uses the same code, it will be easy for hackers to work around the code making the receipt checking worthless.
+The sample project shows one possible way to make use of this receipt verifier. Please note that the sample app requires that you use the [OpenSSL-for-iPhone](https://github.com/x2on/OpenSSL-for-iPhone) project. Put both projects in a common parent directory. There are plenty of tasks that need to be completed to make the sample code complete but it is a framework to get you started. Like the notes in the VerifyStoreReceipt.m file, the code in the sample app should not be used as-is. If everyone uses the same code, it will be easy for hackers to work around the code making the receipt checking worthless.
 
 ## License
 
