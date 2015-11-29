@@ -104,7 +104,14 @@ NSArray *parseInAppPurchasesData(NSData *inappData) {
 	int type = 0;
 	int xclass = 0;
 	long length = 0;
+
+    NSDateFormatter *rfc3339DateFormatter = [[NSDateFormatter alloc] init];
+    NSLocale *enUSPOSIXLocale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"];
     
+    [rfc3339DateFormatter setLocale:enUSPOSIXLocale];
+    [rfc3339DateFormatter setDateFormat:@"yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'"];
+    [rfc3339DateFormatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+
 	NSUInteger dataLenght = [inappData length];
 	const uint8_t *p = [inappData bytes];
     
@@ -243,11 +250,12 @@ NSArray *parseInAppPurchasesData(NSData *inappData) {
 									break;
 							}
                             
-							if (key) {
+							if (key && str_length>0) {
 								NSString *string = [[NSString alloc] initWithBytes:str_p
 																			length:(NSUInteger)str_length
 																		  encoding:NSASCIIStringEncoding];
-								[item setObject:string forKey:key];
+                                NSDate *date = [rfc3339DateFormatter dateFromString:string];
+								[item setObject:(date ? date : string) forKey:key];
 							}
 						}
 					}
@@ -418,31 +426,48 @@ NSDictionary *dictionaryWithAppStoreReceipt(NSString *receiptPath) {
 				}
                 
 				// Strings
-				if (attr_type == BUNDLE_ID || attr_type == VERSION || attr_type == ORIG_VERSION) {
+				if (attr_type == BUNDLE_ID || attr_type == VERSION || attr_type == ORIG_VERSION || attr_type == EXPIRE_DATE) {
 					int str_type = 0;
 					long str_length = 0;
 					const uint8_t *str_p = p;
+                    
+                    switch (attr_type) {
+                        case BUNDLE_ID:
+                            key = kReceiptBundleIdentifier;
+                            break;
+                        case VERSION:
+                            key = kReceiptVersion;
+                            break;
+                        case ORIG_VERSION:
+                            key = kReceiptOriginalVersion;
+                            break;
+                        case EXPIRE_DATE:
+                            key = kReceiptExpirationDate;
+                            break;
+                    }
+
 					ASN1_get_object(&str_p, &str_length, &str_type, &xclass, seq_end - str_p);
-					if (str_type == V_ASN1_UTF8STRING) {
-						switch (attr_type) {
-							case BUNDLE_ID:
-								key = kReceiptBundleIdentifier;
-								break;
-							case VERSION:
-								key = kReceiptVersion;
-								break;
-                            case ORIG_VERSION:
-                                key = kReceiptOriginalVersion;
-                                break;
-						}
-                        
-						if (key) {
+					if (key && str_length>0) {
+                        if (str_type == V_ASN1_UTF8STRING) {
                             NSString *string = [[NSString alloc] initWithBytes:str_p
 																		length:(NSUInteger)str_length
                                                                       encoding:NSUTF8StringEncoding];
                             [info setObject:string forKey:key];
-						}
-					}
+                        } else if (str_type == V_ASN1_IA5STRING) {
+                            NSDateFormatter *rfc3339DateFormatter = [[NSDateFormatter alloc] init];
+                            NSLocale *enUSPOSIXLocale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"];
+                            
+                            [rfc3339DateFormatter setLocale:enUSPOSIXLocale];
+                            [rfc3339DateFormatter setDateFormat:@"yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'"];
+                            [rfc3339DateFormatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:0]];
+                            
+                            NSString *string = [[NSString alloc] initWithBytes:str_p
+                                                                        length:(NSUInteger)str_length
+                                                                      encoding:NSASCIIStringEncoding];
+                            NSDate *date = [rfc3339DateFormatter dateFromString:string];
+                            [info setObject:(date ? date : string) forKey:key];
+                        }
+                    }
 				}
                 
 				// In-App purchases
@@ -521,6 +546,12 @@ BOOL verifyReceiptAtPath(NSString *receiptPath) {
 		return NO;
     }
     
+    // See if we are past any expiration date
+    NSDate *expired = receipt[kReceiptExpirationDate];
+    if ([expired timeIntervalSinceNow] < 0.0) {
+        return NO;
+    }
+
     unsigned char uuidBytes[16];
     NSUUID *vendorUUID = [[UIDevice currentDevice] identifierForVendor];
     [vendorUUID getUUIDBytes:uuidBytes];
@@ -533,9 +564,9 @@ BOOL verifyReceiptAtPath(NSString *receiptPath) {
 	NSMutableData *hash = [NSMutableData dataWithLength:SHA_DIGEST_LENGTH];
 	SHA1([input bytes], [input length], [hash mutableBytes]);
     
-	if ([bundleIdentifier isEqualToString:[receipt objectForKey:kReceiptBundleIdentifier]] &&
-        [bundleVersion isEqualToString:[receipt objectForKey:kReceiptVersion]] &&
-        [hash isEqualToData:[receipt objectForKey:kReceiptHash]]) {
+	if ([bundleIdentifier isEqualToString:receipt[kReceiptBundleIdentifier]] &&
+        [bundleVersion isEqualToString:receipt[kReceiptVersion]] &&
+        [hash isEqualToData:receipt[kReceiptHash]]) {
 		return YES;
 	}
     
